@@ -1,0 +1,844 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Unimplemented
+\end_layout
+
+\begin_layout Section
+The challenge
+\end_layout
+
+\begin_layout Standard
+This challenge was part of 
+\begin_inset CommandInset href
+LatexCommand href
+name "TetCTF"
+target "https://ctf.hackemall.live/challenges#unimplemented-13"
+literal "false"
+
+\end_inset
+
+.
+ The description of the challenge was:
+\end_layout
+
+\begin_layout Quotation
+
+\begin_inset Quotes eld
+\end_inset
+
+A new public key encryption algorithm is being invented, but the author
+ is not quite sure how to implement the decryption routine correctly.
+ Can you help him?
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The challenge was primarily to analyze the Python implementation of a new
+ public key encryption algorithm whose decryption routine had not yet been
+ implemented and find a way to do so to recover the encrypted flag.
+\end_layout
+
+\begin_layout Section
+The algorithm
+\end_layout
+
+\begin_layout Standard
+The algorithm is based on the well known RSA cryptosystem, but it has two
+ major differences:
+\end_layout
+
+\begin_layout Itemize
+the first one is that instead of using simple integer numbers, it uses Gaussian
+ integers, i.e.
+ complex numbers where both real and imaginary parts are integer values.
+\end_layout
+
+\begin_layout Itemize
+the second is that the modulus N is calculated as 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $P^{2}*Q^{2}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ instead of simply 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $P*Q$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+.
+\end_layout
+
+\begin_layout Standard
+The encryption function was as follows:
+\end_layout
+
+\begin_layout LyX-Code
+def encrypt(public_key, plaintext):
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+n = public_key
+\end_layout
+
+\begin_layout LyX-Code
+plaintext = pad(plaintext, 2 * ((n.bit_length() - 1) // 8))
+\end_layout
+
+\begin_layout LyX-Code
+m = Complex(
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+int.from_bytes(plaintext[:len(plaintext) // 2], "big"),
+\end_layout
+
+\begin_layout LyX-Code
+int.from_bytes(plaintext[len(plaintext) // 2:], "big"))
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+c = complex_pow(m, 65537, n)
+\end_layout
+
+\begin_layout LyX-Code
+return (c.re.to_bytes((n.bit_length() + 7) // 8, "big")
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
++ c.im.to_bytes((n.bit_length() + 7) // 8, "big"))
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout Standard
+As we can see, the plain text is filled so that its size (in bits) is of
+ the same order of magnitude as the private key.
+ Then the text is divided in half, and each half is converted into a numerical
+ value that is then used to form a complex number where the real part is
+ the first half and the imaginary part is the second one.
+\end_layout
+
+\begin_layout Standard
+Since compex numbers are used, the code includes a function for multiplication
+ and modular exponentiation of such numbers.
+ Nevertheless, the encryption process occurs in the same way as in RSA:
+ given a private key (e, N) and a plain text message M, the cipher text
+ C is calculated as 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $M^{e}\mod N$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+.
+\end_layout
+
+\begin_layout Standard
+In this algorithm, the exponent e is fixed as 65537 and both the modulus
+ N and the constants P and Q are present at the end of the file as comments,
+ so all we need to do is implement the decryption function.
+ Based on similarities with RSA, we can assume that the decryption process
+ should also look at least partially similar.
+\end_layout
+
+\begin_layout Section
+Decryption process
+\end_layout
+
+\begin_layout Standard
+In RSA, decryption would be done as follows:
+\end_layout
+
+\begin_layout Itemize
+Calculate 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\phi(N)=(P-1)(Q-1)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Calculate 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $d=invmod(e,\phi(N))$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Calculate 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $m=c^{e}\mod N$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now begins the difficult part.
+ Since N is defined as 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $P^{2}Q^{2}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ intead of just 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $PQ$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+, we need to figure out the correct way to calculate 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\phi(N)$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ (also known as 
+\begin_inset CommandInset href
+LatexCommand href
+name "Euler's totient function"
+target "https://en.wikipedia.org/wiki/Euler_totient_function"
+literal "false"
+
+\end_inset
+
+) for this group of Gaussian integers.
+\end_layout
+
+\begin_layout Standard
+To solve this we can start with the definition of 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+.
+ Given 
+\begin_inset Formula $x=p_{1}{}^{r_{1}}p_{2}{}^{r_{2}}\ldots p_{k}{}^{r_{k}}$
+\end_inset
+
+, where 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $p_{i}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ is the i-th prime factor of N and 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $r_{i}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ is the number of times N can be divided by such factor, we have that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(x)=p_{1}^{r_{1}-1}(p_{1}-1)p_{2}^{r_{2}-1}(p_{2}-1)\ldots p_{k}^{r_{k}-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By the Fundamental Theorem of Arithmetic, 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\phi(x)$
+\end_inset
+
+ can also be written as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\phi(x)=x(1-\frac{1}{p_{1}})(1-\frac{1}{p_{2}})(1-\frac{1}{p_{3}})\ldots(1-\frac{1}{p_{k}})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As the totient function is multiplicative, i.e.
+ 
+\begin_inset Formula $\phi(xy)=\phi(x)\phi(y)$
+\end_inset
+
+, we can write 
+\begin_inset Formula $\phi(N)$
+\end_inset
+
+ as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(N)=\phi(P^{2})\phi(Q^{2})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And so, we have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\phi(N)=P^{2}(1-\frac{1}{P})Q^{2}(1-\frac{1}{Q})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Easy, right? Wrong...
+ because here comes the real problem: we are not dealing with simple integers,
+ but with Gaussian Integers! Since P = P + 0i and Q = Q + 0i ...
+\end_layout
+
+\begin_layout Standard
+Luckily, there is a (relatively) simple way to generalize Euler's totiente
+ to Gaussian integers.
+ And it consists in using a variantion of (1) which multiplies a norm function
+ 
+\begin_inset Formula $\eta$
+\end_inset
+
+ defined as 
+\begin_inset Formula $\eta(\alpha)=a^{2}+b^{2}$
+\end_inset
+
+ where a and b as the real and imaginary parts of 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, respectively.
+ So our new totient function is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(x^{k})=\eta(x)^{k}(1-\frac{1}{\eta(x)})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And finally, by applying this variation to (2), we can calculate 
+\begin_inset Formula $\phi(N)$
+\end_inset
+
+ using
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(P^{2})=\eta(P)^{2}(1-\frac{1}{\eta(P)})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(Q^{2})=\eta(Q)^{2}(1-\frac{1}{\eta(Q)})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi(N)=\phi(P^{2})\phi(Q^{2})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\phi(N)=\eta(Q)^{2}(1-\frac{1}{\eta(Q)})\eta(Q)^{2}(1-\frac{1}{\eta(Q)})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using (3) we can find
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\phi(N)=(P^{4}-P^{2})(Q^{4}-Q^{2})
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Equation (4) can be reduced to 
+\begin_inset Formula $\phi(N)=(P^{3}-P)(Q^{3}-Q)$
+\end_inset
+
+ with the same effect.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Decryption routine
+\end_layout
+
+\begin_layout Standard
+Having calculated (4), the rest of the decryption routine can be implemented
+ as it would be in RSA.
+ So, our decrypt function would look something like:
+\end_layout
+
+\begin_layout LyX-Code
+def decrypt(private_key, ciphertext):
+\end_layout
+
+\begin_layout LyX-Code
+    (p, q) = private_key
+\end_layout
+
+\begin_layout LyX-Code
+    n = (p ** 2) * (q ** 2)
+\end_layout
+
+\begin_layout LyX-Code
+    c = Complex(
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+    int.from_bytes(ciphertext[:len(ciphertext) // 2], "big"),           
+                                                     int.from_bytes(ciphertext[le
+n(ciphertext) // 2:], "big")
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+    )
+\end_layout
+
+\begin_layout LyX-Code
+    e = 65537
+\end_layout
+
+\begin_layout LyX-Code
+    phi = (p ** 4 - p ** 2) * (q ** 4 - q ** 2)
+\end_layout
+
+\begin_layout LyX-Code
+    d = inverse(e, phi)
+\end_layout
+
+\begin_layout LyX-Code
+    m = complex_pow(c, d, n)
+\end_layout
+
+\begin_layout LyX-Code
+    return unpad(m.re.to_bytes((n.bit_length() + 7) // 8, "big")
+\end_layout
+
+\begin_layout LyX-Code
+            + m.im.to_bytes((n.bit_length() + 7) // 8, "big"))
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Section
+THE END
+\end_layout
+
+\end_body
+\end_document
