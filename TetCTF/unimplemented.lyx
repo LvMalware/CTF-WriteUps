@@ -693,7 +693,7 @@ Luckily, there is a (relatively) simple way to generalize Euler's totiente
 \begin_inset Formula $\eta(\alpha)=a^{2}+b^{2}$
 \end_inset
 
- where a and b as the real and imaginary parts of 
+ where a and b are the real and imaginary parts of 
 \begin_inset Formula $\alpha$
 \end_inset
 
@@ -756,7 +756,7 @@ And finally, by applying this variation to (2), we can calculate
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\phi(N)=\eta(Q)^{2}(1-\frac{1}{\eta(Q)})\eta(Q)^{2}(1-\frac{1}{\eta(Q)})
+\phi(N)=\eta(P)^{2}(1-\frac{1}{\eta(P)})\eta(Q)^{2}(1-\frac{1}{\eta(Q)})
 \end{equation}
 
 \end_inset
