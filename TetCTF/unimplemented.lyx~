@@ -867,7 +867,7 @@ def decrypt(private_key, ciphertext):
 \end_layout
 
 \begin_layout LyX-Code
-               + m.im.to_bytes((n.bit_length() + 7) // 8, "big"))
+            + m.im.to_bytes((n.bit_length() + 7) // 8, "big"))
 \end_layout
 
 \begin_layout LyX-Code
