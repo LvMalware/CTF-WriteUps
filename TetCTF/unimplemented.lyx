@@ -146,7 +146,7 @@ the second is that the modulus N is calculated as
 \noun off
 \color none
 
-\begin_inset Formula $P^{2}*Q^{2}$
+\begin_inset Formula $P^{2}Q$
 \end_inset
 
 
@@ -176,7 +176,7 @@ the second is that the modulus N is calculated as
 \noun off
 \color none
 
-\begin_inset Formula $P*Q$
+\begin_inset Formula $PQ$
 \end_inset
 
 
@@ -201,6 +201,7 @@ The encryption function was as follows:
 
 \begin_layout Standard
 \begin_inset Float algorithm
+placement H
 wide false
 sideways false
 status open
@@ -209,7 +210,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Encrypt
+Encryption routine
 \end_layout
 
 \end_inset
@@ -804,6 +805,7 @@ Equation (4) can be reduced to
 
 \begin_layout Standard
 \begin_inset Float algorithm
+placement H
 wide false
 sideways false
 status open
@@ -812,7 +814,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Decrypt
+Decryption routine
 \end_layout
 
 \end_inset
@@ -881,8 +883,8 @@ def decrypt(private_key, ciphertext):
 
 \end_layout
 
-\begin_layout LyX-Code
-
+\begin_layout Section*
+THE END
 \end_layout
 
 \end_body
