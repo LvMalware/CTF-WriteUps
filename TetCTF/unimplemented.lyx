@@ -555,7 +555,7 @@ To solve this we can start with the definition of
 \uwave default
 \noun default
 \color inherit
- is the i-th prime factor of N and 
+ is the i-th prime factor of x and 
 \family roman
 \series medium
 \shape up
@@ -585,7 +585,7 @@ To solve this we can start with the definition of
 \uwave default
 \noun default
 \color inherit
- is the number of times N can be divided by such factor, we have that
+ is the number of times x can be divided by such factor, we have that
 \end_layout
 
 \begin_layout Standard
